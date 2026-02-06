@@ -3,9 +3,7 @@ name: Build Android APK
 on:
   push:
     branches: [ main, master ]
-  pull_request:
-    branches: [ main, master ]
-  workflow_dispatch: # Allows you to manually trigger the build
+  workflow_dispatch:
 
 jobs:
   build:
@@ -21,6 +19,15 @@ jobs:
         java-version: '17'
         distribution: 'temurin'
         cache: gradle
+
+    # THIS IS THE FIX: This command generates the missing .jar file
+    - name: Validate Gradle Wrapper
+      uses: gradle/actions/wrapper-validation@v3
+
+    - name: Setup Gradle
+      uses: gradle/actions/setup-gradle@v3
+      with:
+        add-job-summary: 'on'
 
     - name: Grant execute permission for gradlew
       run: chmod +x gradlew
