@@ -21,16 +21,16 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        // 1. Initialize Views
+        // 1. Initialize UI Components
         recyclerView = findViewById(R.id.recyclerView)
         btnKillAll = findViewById(R.id.btnKillAll)
 
-        // 2. Setup RecyclerView
+        // 2. Setup RecyclerView with an empty list to start
         recyclerView.layoutManager = LinearLayoutManager(this)
         appAdapter = AppAdapter(mutableListOf()) 
         recyclerView.adapter = appAdapter
 
-        // 3. Button Logic
+        // 3. Button Logic: Checks permission, then starts service
         btnKillAll.setOnClickListener {
             if (isAccessibilityServiceEnabled()) {
                 startKillService()
@@ -43,11 +43,11 @@ class MainActivity : AppCompatActivity() {
     private fun startKillService() {
         val intent = Intent(this, KillService::class.java)
         startService(intent)
-        Toast.makeText(this, "Service Started", Toast.LENGTH_SHORT).show()
+        Toast.makeText(this, "Cleanup service started", Toast.LENGTH_SHORT).show()
     }
 
     private fun requestAccessibilityPermission() {
-        Toast.makeText(this, "Enable Accessibility Permission", Toast.LENGTH_LONG).show()
+        Toast.makeText(this, "Please enable AppKiller in Settings", Toast.LENGTH_LONG).show()
         val intent = Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)
         startActivity(intent)
     }
