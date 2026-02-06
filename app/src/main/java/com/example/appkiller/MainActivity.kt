@@ -21,31 +21,39 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
+        // UI Setup
         recyclerView = findViewById(R.id.recyclerView)
         btnKillAll = findViewById(R.id.btnKillAll)
 
+        // Adapter Setup
         recyclerView.layoutManager = LinearLayoutManager(this)
         appAdapter = AppAdapter(mutableListOf())
         recyclerView.adapter = appAdapter
 
-        // Simplified listener to prevent character/syntax errors at line 42
-        btnKillAll.setOnClickListener({
-            handleKillButtonClick()
-        })
+        // The problematic area (Line 42)
+        btnKillAll.setOnClickListener {
+            handleKillAction()
+        }
     }
 
-    private fun handleKillButtonClick() {
+    private fun handleKillAction() {
         if (isAccessibilityServiceEnabled()) {
-            startService(Intent(this, KillService::class.java))
+            val intent = Intent(this, KillService::class.java)
+            startService(intent)
+            Toast.makeText(this, "Starting cleanup...", Toast.LENGTH_SHORT).show()
         } else {
-            Toast.makeText(this, "Enable Accessibility", Toast.LENGTH_SHORT).show()
-            startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS))
+            Toast.makeText(this, "Accessibility Permission Required", Toast.LENGTH_LONG).show()
+            val intent = Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)
+            startActivity(intent)
         }
     }
 
     private fun isAccessibilityServiceEnabled(): Boolean {
-        val expected = "$packageName/${KillService::class.java.canonicalName}"
-        val enabled = Settings.Secure.getString(contentResolver, Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES)
-        return enabled?.contains(expected) == true
+        val serviceId = "$packageName/${KillService::class.java.canonicalName}"
+        val enabledServices = Settings.Secure.getString(
+            contentResolver, 
+            Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES
+        )
+        return enabledServices?.contains(serviceId) == true
     }
 }
