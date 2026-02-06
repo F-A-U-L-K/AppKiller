@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">AppKiller</string>
+    <string name="service_description">This service helps automate closing background apps to save memory.</string>
+</resources>
