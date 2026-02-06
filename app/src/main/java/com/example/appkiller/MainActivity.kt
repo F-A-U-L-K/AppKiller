@@ -21,42 +21,31 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        // Initialize Views
         recyclerView = findViewById(R.id.recyclerView)
         btnKillAll = findViewById(R.id.btnKillAll)
 
-        // Setup RecyclerView
         recyclerView.layoutManager = LinearLayoutManager(this)
-        appAdapter = AppAdapter(mutableListOf()) 
+        appAdapter = AppAdapter(mutableListOf())
         recyclerView.adapter = appAdapter
 
-        // Fix for Line 42: Ensure the listener and method calls are properly closed
-        btnKillAll.setOnClickListener {
-            if (isAccessibilityServiceEnabled()) {
-                startKillService()
-            } else {
-                requestAccessibilityPermission()
-            }
+        // Simplified listener to prevent character/syntax errors at line 42
+        btnKillAll.setOnClickListener({
+            handleKillButtonClick()
+        })
+    }
+
+    private fun handleKillButtonClick() {
+        if (isAccessibilityServiceEnabled()) {
+            startService(Intent(this, KillService::class.java))
+        } else {
+            Toast.makeText(this, "Enable Accessibility", Toast.LENGTH_SHORT).show()
+            startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS))
         }
     }
 
     private fun isAccessibilityServiceEnabled(): Boolean {
-        val expectedService = "$packageName/${KillService::class.java.canonicalName}"
-        val enabledServices = Settings.Secure.getString(
-            contentResolver,
-            Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES
-        )
-        return enabledServices?.contains(expectedService) == true
-    }
-
-    private fun requestAccessibilityPermission() {
-        Toast.makeText(this, "Enable Accessibility for AppKiller", Toast.LENGTH_LONG).show()
-        val intent = Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)
-        startActivity(intent)
-    }
-
-    private fun startKillService() {
-        val intent = Intent(this, KillService::class.java)
-        startService(intent)
+        val expected = "$packageName/${KillService::class.java.canonicalName}"
+        val enabled = Settings.Secure.getString(contentResolver, Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES)
+        return enabled?.contains(expected) == true
     }
 }
