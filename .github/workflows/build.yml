@@ -21,20 +21,22 @@ jobs:
 
     - name: Setup Gradle
       uses: gradle/actions/setup-gradle@v3
-      with:
-        gradle-version: 8.2
+      # remove gradle-version if you trust your wrapper
 
     - name: Grant Execute Permission for Gradlew
-      run: chmod +x gradlew
+      run: chmod +x gradlew    # keep even after git chmod, harmless
 
     - name: Clean and Build APK
-      # We combine clean and assembleDebug to ensure a fresh, successful build.
-      # The -P flags solve the "AndroidX not enabled" error once and for all.
-      run: ./gradlew clean assembleDebug -Pandroid.useAndroidX=true -Pandroid.enableJetifier=true --stacktrace
+      run: ./gradlew clean assembleDebug --stacktrace --info
+
+    - name: List APKs (debug)
+      if: always()
+      run: find . -name "*.apk" || true
 
     - name: Upload APK
       if: success()
       uses: actions/upload-artifact@v4
       with:
         name: AppKiller-Debug-APK
-        path: app/build/outputs/apk/debug/app-debug.apk
+        path: |
+          **/build/outputs/apk/debug/*.apk
