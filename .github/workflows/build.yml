@@ -21,11 +21,18 @@ jobs:
         distribution: 'temurin'
         cache: gradle
 
+    - name: Bootstrap Gradle Wrapper
+      # This step downloads the official wrapper JAR directly from the source 
+      # so you don't have to manually upload it to GitHub.
+      run: |
+        mkdir -p gradle/wrapper
+        curl -L https://github.com/gradle/gradle/raw/v8.2.1/gradle/wrapper/gradle-wrapper.jar -o gradle/wrapper/gradle-wrapper.jar
+
     - name: Grant execute permission for gradlew
       run: chmod +x gradlew
 
     - name: Clean and Build APK
-      # Added diagnostic flags to ensure we see the exact cause of any failure
+      # Detailed logging enabled to catch any subsequent library issues
       run: ./gradlew assembleDebug --info --stacktrace --full-stacktrace
 
     - name: Upload APK
