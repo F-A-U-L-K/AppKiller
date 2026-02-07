@@ -16,7 +16,7 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
-      # THIS IS THE KEY: It provides Gradle 8.2.1 without needing your JAR file
+      # This fixed the "Missing JAR" problem last time - keep it exactly like this
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v3
         with:
@@ -26,6 +26,13 @@ jobs:
         run: chmod +x gradlew
 
       - name: Build APK
-        # We run 'gradle assembleDebug' directly instead of './gradlew' 
-        # to ensure it uses the fresh version we just installed.
-        run: gradle assembleDebug --info --stacktrace
+        # We use 'assembleDebug' because it is the fastest way to get an APK
+        run: ./gradlew assembleDebug
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: AppKiller-App
+          # This '**/*.apk' tells GitHub to search EVERY folder for the APK
+          path: "**/*.apk"
+          if-no-files-found: error
