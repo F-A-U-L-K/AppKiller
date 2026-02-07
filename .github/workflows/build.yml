@@ -19,20 +19,19 @@ jobs:
       with:
         java-version: '17'
         distribution: 'temurin'
-        cache: gradle
 
-    # This official action fixes the "Unable to access jarfile" and missing JAR issues
+    # This is the official fix for the missing .jar file
     - name: Setup Gradle
       uses: gradle/actions/setup-gradle@v3
       with:
-        gradle-version: wrapper # This uses the version defined in your project
+        gradle-version: 8.2.1
 
     - name: Grant execute permission for gradlew
       run: chmod +x gradlew
 
     - name: Clean and Build APK
-      # Detailed logging remains enabled to catch any internal code errors
-      run: ./gradlew assembleDebug --info --stacktrace --full-stacktrace
+      # If this fails, the --info flag will tell us the next exact step to take
+      run: ./gradlew assembleDebug --info --stacktrace
 
     - name: Upload APK
       uses: actions/upload-artifact@v4
