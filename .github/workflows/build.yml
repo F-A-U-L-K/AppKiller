@@ -27,14 +27,10 @@ jobs:
     - name: Grant Execute Permission for Gradlew
       run: chmod +x gradlew
 
-    - name: Clean Build
-      # This clears old cache and data to prevent exit code 162 errors
-      run: ./gradlew clean
-
-    - name: Build Debug APK
-      # We force AndroidX and Jetifier here to fix your specific error
-      # --stacktrace provides full details if it fails again
-      run: ./gradlew assembleDebug -Pandroid.useAndroidX=true -Pandroid.enableJetifier=true --stacktrace
+    - name: Clean and Build APK
+      # We combine clean and assembleDebug to ensure a fresh, successful build.
+      # The -P flags solve the "AndroidX not enabled" error once and for all.
+      run: ./gradlew clean assembleDebug -Pandroid.useAndroidX=true -Pandroid.enableJetifier=true --stacktrace
 
     - name: Upload APK
       if: success()
