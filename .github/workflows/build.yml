@@ -21,17 +21,17 @@ jobs:
         distribution: 'temurin'
         cache: gradle
 
-    # This official action fixes the "no main manifest" and missing JAR issues
+    # This official action fixes the "Unable to access jarfile" and missing JAR issues
     - name: Setup Gradle
       uses: gradle/actions/setup-gradle@v3
       with:
-        gradle-version: 8.2.1
+        gradle-version: wrapper # This uses the version defined in your project
 
     - name: Grant execute permission for gradlew
       run: chmod +x gradlew
 
     - name: Clean and Build APK
-      # Using --info and --stacktrace to see exactly what happens inside
+      # Detailed logging remains enabled to catch any internal code errors
       run: ./gradlew assembleDebug --info --stacktrace --full-stacktrace
 
     - name: Upload APK
