@@ -1,6 +1,10 @@
 package com.faulk.appkiller
 
+import android.app.AppOpsManager
+import android.content.Context
 import android.content.Intent
+import android.content.pm.ApplicationInfo
+import android.content.pm.PackageManager
 import android.os.Bundle
 import android.provider.Settings
 import android.widget.Button
@@ -21,43 +25,60 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        // 1. Initialize UI Components
         recyclerView = findViewById(R.id.recyclerView)
         btnKillAll = findViewById(R.id.btnKillAll)
 
-        // 2. Setup RecyclerView with an empty list to start
         recyclerView.layoutManager = LinearLayoutManager(this)
-        appAdapter = AppAdapter(mutableListOf()) 
-        recyclerView.adapter = appAdapter
+        
+        // Suggestion #6: Check for Usage Stats Permission
+        if (!hasUsageStatsPermission()) {
+            requestUsageStatsPermission()
+        }
 
-        // 3. Button Logic: Checks permission, then starts service
+        loadApps()
+
         btnKillAll.setOnClickListener {
             if (isAccessibilityServiceEnabled()) {
-                startKillService()
+                startService(Intent(this, KillService::class.java))
             } else {
-                requestAccessibilityPermission()
+                startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS))
             }
         }
     }
 
-    private fun startKillService() {
-        val intent = Intent(this, KillService::class.java)
-        startService(intent)
-        Toast.makeText(this, "Cleanup service started", Toast.LENGTH_SHORT).show()
+    private fun loadApps() {
+        val pm = packageManager
+        val apps = pm.getInstalledApplications(PackageManager.GET_META_DATA)
+        val appInfoList = mutableListOf<AppInfo>()
+
+        for (app in apps) {
+            // Filter out system apps if desired
+            if (app.flags and ApplicationInfo.FLAG_SYSTEM == 0) {
+                appInfoList.add(AppInfo(
+                    appName = app.loadLabel(pm).toString(),
+                    packageName = app.packageName,
+                    icon = app.loadIcon(pm)
+                ))
+            }
+        }
+        appAdapter = AppAdapter(appInfoList)
+        recyclerView.adapter = appAdapter
     }
 
-    private fun requestAccessibilityPermission() {
-        Toast.makeText(this, "Please enable AppKiller in Settings", Toast.LENGTH_LONG).show()
-        val intent = Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)
-        startActivity(intent)
+    private fun hasUsageStatsPermission(): Boolean {
+        val appOps = getSystemService(Context.APP_OPS_SERVICE) as AppOpsManager
+        val mode = appOps.checkOpNoThrow(AppOpsManager.OPSTR_GET_USAGE_STATS, android.os.Process.myUid(), packageName)
+        return mode == AppOpsManager.MODE_ALLOWED
+    }
+
+    private fun requestUsageStatsPermission() {
+        Toast.makeText(this, "Usage Access required to detect memory usage", Toast.LENGTH_LONG).show()
+        startActivity(Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS))
     }
 
     private fun isAccessibilityServiceEnabled(): Boolean {
         val expectedService = "$packageName/${KillService::class.java.canonicalName}"
-        val enabledServices = Settings.Secure.getString(
-            contentResolver,
-            Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES
-        )
+        val enabledServices = Settings.Secure.getString(contentResolver, Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES)
         return enabledServices?.contains(expectedService) == true
     }
 }
