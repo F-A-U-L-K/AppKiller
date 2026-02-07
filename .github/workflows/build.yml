@@ -26,10 +26,11 @@ jobs:
         run: chmod +x gradlew
 
       - name: Build APK
-        # We use ./gradlew because the Setup step above makes it work now
-        run: ./gradlew assembleDebug --info --stacktrace
+        # We run 'gradle assembleDebug' directly instead of './gradlew' 
+        # to ensure it uses the fresh version we just installed.
+        run: gradle assembleDebug --info --stacktrace
 
-      # ONLY ADDED THIS PART BELOW:
+      # I ONLY ADDED THIS STEP BELOW TO SAVE THE FILE:
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
