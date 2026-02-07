@@ -2,18 +2,24 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:gravity="center"
     android:orientation="vertical"
-    android:padding="16dp">
+    android:padding="32dp">
+
+    <TextView
+        android:id="@+id/tvStatus"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="System Ready"
+        android:textSize="18sp"
+        android:textAlignment="center"
+        android:layout_marginBottom="24dp"/>
 
     <Button
-        android:id="@+id/btnKillAll"
-        android:layout_width="match_parent"
+        android:id="@+id/btnKill"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Kill Background Apps" />
+        android:text="KILL APPS"
+        android:padding="16dp"/>
 
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/recyclerView"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_marginTop="16dp" />
 </LinearLayout>
