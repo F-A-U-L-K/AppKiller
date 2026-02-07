@@ -5,11 +5,15 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
 import android.widget.Button
+import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class MainActivity : AppCompatActivity() {
 
@@ -17,71 +21,72 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        // Find the button (Make sure your ID in activity_main.xml is 'btnKill')
         val killButton: Button = findViewById(R.id.btnKill)
+        val statusText: TextView = findViewById(R.id.tvStatus) // Ensure you have a TextView with this ID
 
         killButton.setOnClickListener {
-            // 1. Disable button immediately to prevent double-clicks
+            // Disable button to prevent double-taps
             killButton.isEnabled = false
-            killButton.text = "Optimizing..."
-            
-            Toast.makeText(this, "Starting Safe Clean...", Toast.LENGTH_SHORT).show()
+            killButton.text = "Scanning..."
+            statusText.text = "Initializing..."
 
-            // 2. Run the heavy work in the background
-            runSafeOptimization(this) {
-                // 3. This code runs when finished
-                killButton.isEnabled = true
-                killButton.text = "KILL APPS"
-                Toast.makeText(this, "Phone is optimized!", Toast.LENGTH_LONG).show()
+            // Use Coroutines for safer, cleaner background threading
+            lifecycleScope.launch {
+                optimizeSystem(killButton, statusText)
             }
         }
     }
 
-    private fun runSafeOptimization(context: Context, onComplete: () -> Unit) {
-        val am = context.getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
-        val pm = context.packageManager
-        val mainHandler = Handler(Looper.getMainLooper())
-
-        Thread {
-            // A. Find the Home Screen (Launcher) so we don't kill it
+    private suspend fun optimizeSystem(button: Button, status: TextView) {
+        // Switch to Background Thread (IO)
+        withContext(Dispatchers.IO) {
+            val am = getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
+            val pm = packageManager
+            
+            // Find Launcher (Home Screen) to avoid killing it
             val homeIntent = Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_HOME)
-            val launcherPkg = pm.resolveActivity(homeIntent, PackageManager.MATCH_DEFAULT_ONLY)?.activityInfo?.packageName
+            val homePkg = pm.resolveActivity(homeIntent, PackageManager.MATCH_DEFAULT_ONLY)?.activityInfo?.packageName
 
-            // B. Get only running processes
-            val runningProcesses = am.runningAppProcesses ?: return@Thread
+            val runningApps = am.runningAppProcesses ?: return@withContext
 
-            for (process in runningProcesses) {
-                try {
-                    val pkgName = process.processName
+            var killedCount = 0
+            val total = runningApps.size
 
-                    // SAFETY CHECK 1: Don't kill THIS app
-                    if (pkgName == context.packageName) continue
+            for ((index, app) in runningApps.withIndex()) {
+                val pkg = app.processName
 
-                    // SAFETY CHECK 2: Don't kill the Home Screen
-                    if (pkgName == launcherPkg) continue
+                // Update Progress on Main Thread
+                withContext(Dispatchers.Main) {
+                    status.text = "Scanning: ${index + 1}/$total\n$pkg"
+                }
 
-                    // SAFETY CHECK 3: Don't kill Keyboards (Input Methods)
-                    // If you kill the keyboard, you can't type!
-                    if (pkgName.contains("inputmethod") || pkgName.contains("keyboard")) continue
+                // SAFETY CHECKS
+                if (pkg == packageName) continue // Don't kill self
+                if (pkg == homePkg) continue // Don't kill Home Screen
+                if (pkg.contains("inputmethod")) continue // Don't kill Keyboard
+                if (pkg.contains("google.android.gms")) continue // Don't kill Google Play Services (prevents crashes)
 
-                    // SAFETY CHECK 4: Only kill "unimportant" background apps
-                    // IMPORTANCE_VISIBLE (200) or higher means the user can see it. Don't kill it.
-                    if (process.importance > ActivityManager.RunningAppProcessInfo.IMPORTANCE_VISIBLE) {
-                        
-                        am.killBackgroundProcesses(pkgName)
-                        
-                        // C. Vital CPU Pause (Prevents freezing)
-                        Thread.sleep(30) 
+                // KILL LOGIC
+                // Only kill background apps (IMPORTANCE_SERVICE or lower)
+                if (app.importance >= ActivityManager.RunningAppProcessInfo.IMPORTANCE_SERVICE) {
+                    try {
+                        am.killBackgroundProcesses(pkg)
+                        killedCount++
+                        // Tiny delay to prevent CPU freeze
+                        delay(40) 
+                    } catch (e: Exception) {
+                        // Ignore errors
                     }
-                } catch (e: Exception) {
-                    // Ignore errors for individual apps and keep going
                 }
             }
 
-            // D. Notify the Main Thread that we are done
-            mainHandler.post {
-                onComplete()
+            // Completion on Main Thread
+            withContext(Dispatchers.Main) {
+                status.text = "Optimized $killedCount apps."
+                button.text = "KILL APPS"
+                button.isEnabled = true
+                Toast.makeText(this@MainActivity, "Phone Optimized!", Toast.LENGTH_SHORT).show()
             }
-        }.start()
+        }
     }
 }
