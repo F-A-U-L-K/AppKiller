@@ -1,3 +1,0 @@
-    - name: Build Debug APK
-      # Use -P flags to force the AndroidX and Jetifier settings
-      run: ./gradlew assembleDebug -Pandroid.useAndroidX=true -Pandroid.enableJetifier=true --stacktrace
