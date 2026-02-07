@@ -1,4 +1,5 @@
 package com.faulk.appkiller
+
 import android.graphics.drawable.Drawable
 
 data class AppInfo(
