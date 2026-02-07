@@ -3,27 +3,28 @@ package com.faulk.appkiller.adapter
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
+import com.faulk.appkiller.AppInfo // Correct Import
 import com.faulk.appkiller.R
 
-// Simple model for App data
-data class AppInfo(val name: String, val packageName: String)
+class AppAdapter(private val appList: List<AppInfo>) : RecyclerView.Adapter<AppAdapter.ViewHolder>() {
 
-class AppAdapter(private val appList: List<AppInfo>) : RecyclerView.Adapter<AppAdapter.AppViewHolder>() {
-
-    class AppViewHolder(view: View) : RecyclerView.ViewHolder(view) {
-        val appName: TextView = view.findViewById(android.R.id.text1)
+    class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
+        val icon: ImageView = view.findViewById(R.id.appIcon)
+        val name: TextView = view.findViewById(R.id.appName)
     }
 
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): AppViewHolder {
-        val view = LayoutInflater.from(parent.context)
-            .inflate(android.R.layout.simple_list_item_1, parent, false)
-        return AppViewHolder(view)
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
+        val view = LayoutInflater.from(parent.context).inflate(R.layout.item_app, parent, false)
+        return ViewHolder(view)
     }
 
-    override fun onBindViewHolder(holder: AppViewHolder, position: Int) {
-        holder.appName.text = appList[position].name
+    override fun onBindViewHolder(holder: ViewHolder, position: Int) {
+        val app = appList[position]
+        holder.name.text = app.appName
+        holder.icon.setImageDrawable(app.icon)
     }
 
     override fun getItemCount() = appList.size
