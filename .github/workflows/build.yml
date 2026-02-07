@@ -24,8 +24,16 @@ jobs:
       with:
         gradle-version: 8.2
 
+    - name: Grant Execute Permission for Gradlew
+      run: chmod +x gradlew
+
+    - name: Clean Build
+      # This clears old cache and data to prevent exit code 162 errors
+      run: ./gradlew clean
+
     - name: Build Debug APK
-      # We put the -P flags here. This is the only build step you need.
+      # We force AndroidX and Jetifier here to fix your specific error
+      # --stacktrace provides full details if it fails again
       run: ./gradlew assembleDebug -Pandroid.useAndroidX=true -Pandroid.enableJetifier=true --stacktrace
 
     - name: Upload APK
