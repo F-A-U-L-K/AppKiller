@@ -1,4 +1,7 @@
 package com.faulk.appkiller
+import android.app.usage.UsageStatsManager
+import android.net.Uri
+import android.provider.Settings
 
 import android.app.ActivityManager
 import android.content.Context
