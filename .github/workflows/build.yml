@@ -16,7 +16,6 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
-      # THIS IS THE KEY: It provides Gradle 8.2.1 without needing your JAR file
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v3
         with:
@@ -25,7 +24,15 @@ jobs:
       - name: Grant execute permission
         run: chmod +x gradlew
 
-      - name: Build APK
-        # We run 'gradle assembleDebug' directly instead of './gradlew' 
-        # to ensure it uses the fresh version we just installed.
-        run: gradle assembleDebug --info --stacktrace
+      - name: Build Debug APK
+        # assembleDebug is the command that creates the actual APK file
+        run: ./gradlew assembleDebug --info
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: AppKiller-Package
+          # This '**/build/**/*.apk' finds the APK no matter where it is hidden
+          path: "**/build/outputs/apk/debug/*.apk"
+          # This makes the build fail if no APK is found, so we know immediately
+          if-no-files-found: error
