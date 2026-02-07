@@ -20,7 +20,8 @@ jobs:
         java-version: '17'
         distribution: 'temurin'
 
-    # This is the official fix for the missing .jar file
+    # THIS STEP REPLACES THE MISSING JAR
+    # It will automatically install a working Gradle version (8.2.1)
     - name: Setup Gradle
       uses: gradle/actions/setup-gradle@v3
       with:
@@ -30,7 +31,8 @@ jobs:
       run: chmod +x gradlew
 
     - name: Clean and Build APK
-      # If this fails, the --info flag will tell us the next exact step to take
+      # If the build still fails here, the logs will now show code errors 
+      # instead of "Missing JAR" errors.
       run: ./gradlew assembleDebug --info --stacktrace
 
     - name: Upload APK
