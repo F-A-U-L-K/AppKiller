@@ -1,35 +1,92 @@
-<LinearLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="vertical"
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/rootLayout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:padding="16dp">
+    android:background="@android:color/black">
 
-    <Button
-        android:id="@+id/btnKill"
+    <!-- Radar View -->
+    <com.faulk.appkiller.RadarView
+        android:id="@+id/radarView"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="KILL / OPTIMIZE APPS"/>
+        android:layout_height="300dp"
+        android:layout_alignParentTop="true"
+        android:visibility="gone" />
 
-    <Button
-        android:id="@+id/btnClearCache"
-        android:layout_width="match_parent"
+    <!-- ProgressBar for scanning -->
+    <ProgressBar
+        android:id="@+id/progressScanner"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="CLEAR CACHE"
-        android:layout_marginTop="8dp"/>
+        android:layout_centerHorizontal="true"
+        android:layout_below="@id/radarView"
+        android:visibility="gone"
+        style="?android:attr/progressBarStyleHorizontal"
+        android:indeterminate="true"
+        android:progressTint="@color/radar_green" />
 
-    <TextView
-        android:id="@+id/tvStatus"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Status log..."
-        android:layout_marginTop="8dp"
-        android:scrollbars="vertical"/>
-
+    <!-- RecyclerView of apps -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rvApps"
         android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"
-        android:layout_marginTop="8dp"/>
-</LinearLayout>
+        android:layout_height="wrap_content"
+        android:layout_below="@id/progressScanner"
+        android:layout_above="@id/tvStatus"
+        android:padding="8dp" />
+
+    <!-- Status Log -->
+    <ScrollView
+        android:id="@+id/scrollLog"
+        android:layout_width="match_parent"
+        android:layout_height="150dp"
+        android:layout_alignParentBottom="true"
+        android:padding="8dp"
+        android:background="#22000000">
+
+        <TextView
+            android:id="@+id/tvStatus"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textColor="@color/white"
+            android:textSize="14sp"
+            android:fontFamily="monospace" />
+    </ScrollView>
+
+    <!-- Buttons -->
+    <LinearLayout
+        android:id="@+id/buttonPanel"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_above="@id/scrollLog"
+        android:orientation="horizontal"
+        android:gravity="center"
+        android:padding="8dp">
+
+        <Button
+            android:id="@+id/btnOneTapOptimize"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="One-Tap Optimize"
+            android:layout_margin="4dp"
+            android:backgroundTint="@color/radar_green"
+            android:textColor="@color/black" />
+
+        <Button
+            android:id="@+id/btnKill"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Kill Selected"
+            android:layout_margin="4dp"
+            android:backgroundTint="@color/radar_green"
+            android:textColor="@color/black" />
+
+        <Button
+            android:id="@+id/btnClearCache"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Clear Cache"
+            android:layout_margin="4dp"
+            android:backgroundTint="@color/radar_green"
+            android:textColor="@color/black" />
+    </LinearLayout>
+</RelativeLayout>
