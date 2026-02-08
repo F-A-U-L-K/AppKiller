@@ -1,0 +1,18 @@
+<resources>
+    <!-- General -->
+    <color name="white">#FFFFFF</color>
+    <color name="black">#000000</color>
+    <color name="gray_light">#AAAAAA</color>
+
+    <!-- Radar & Beam -->
+    <color name="radar_green">#33FF00</color>
+    <color name="radar_glow">#66FF66</color>
+
+    <!-- Log colors -->
+    <color name="log_scan">#FF33FF</color>
+    <color name="log_process">#33FF00</color>
+    <color name="log_success">#00FF00</color>
+    <color name="log_warning">#FFFF00</color>
+    <color name="log_error">#FF0000</color>
+    <color name="log_cache">#00FFFF</color>
+</resources>
