@@ -1,4 +1,4 @@
-package app.faulk.apkiller // Change this to your actual package name
+package com.faulk.appkiller // Change this to your actual package name
 
 import android.accessibilityservice.AccessibilityService
 import android.view.accessibility.AccessibilityEvent
