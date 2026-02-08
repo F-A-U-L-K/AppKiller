@@ -1,4 +1,4 @@
-// Top-level build file
+// Top-level build filem
 buildscript {
     ext.kotlin_version = "1.9.10"
     repositories {
@@ -9,11 +9,4 @@ buildscript {
         classpath "com.android.tools.build:gradle:8.11.1"
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
     }
-}
-
-allprojects {
-    repositories {
-        google()
-    }
-    
 }
