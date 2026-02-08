@@ -23,30 +23,43 @@ class MainActivity : AppCompatActivity() {
         val killButton: Button = findViewById(R.id.btnKill)
 
         killButton.setOnClickListener {
-            // This now triggers the automated "Force Stop" sequence
+            // This line triggers the new logic you wanted
             onClearButtonClick(it)
+            
+            // This keeps your original background thread logic running as well
+            killButton.isEnabled = false
+            killButton.text = "Cleaning..."
+            Toast.makeText(this, "Cleaning Background Memory...", Toast.LENGTH_SHORT).show()
+
+            thread(start = true) {
+                performBulletproofClean()
+                runOnUiThread {
+                    killButton.isEnabled = true
+                    killButton.text = "KILL APPS"
+                    Toast.makeText(this, "Optimization Complete", Toast.LENGTH_LONG).show()
+                }
+            }
         }
     }
 
-    // This function finds recent apps and opens their settings for the KillerService
+    // --- ADDED FUNCTION: This opens the settings for each app ---
     fun onClearButtonClick(v: View) {
         val usm = getSystemService(Context.USAGE_STATS_SERVICE) as UsageStatsManager
         val endTime = System.currentTimeMillis()
-        val startTime = endTime - (1000 * 60 * 10) // Check last 10 minutes
+        val startTime = endTime - (1000 * 60 * 10) // Last 10 minutes
 
         val usageStatsList = usm.queryUsageStats(UsageStatsManager.INTERVAL_DAILY, startTime, endTime)
 
-        // If list is empty, user likely hasn't granted "Usage Access" permission
         if (usageStatsList.isNullOrEmpty()) {
-            Toast.makeText(this, "Please enable Usage Access for AppKiller", Toast.LENGTH_LONG).show()
-            startActivity(Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS))
+            // This directs user to settings if they haven't granted permission yet
+            Toast.makeText(this, "Please enable Usage Access", Toast.LENGTH_LONG).show()
+            val intent = Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS)
+            startActivity(intent)
             return
         }
 
         usageStatsList.forEach { stats ->
             val packageName = stats.packageName
-            
-            // Do not try to kill your own app or the system launcher
             if (packageName != this.packageName) {
                 val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
                     data = Uri.parse("package:$packageName")
@@ -57,7 +70,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    // Keeping your original background cleaning logic as a fallback
+    // --- YOUR ORIGINAL LOGIC ---
     private fun performBulletproofClean() {
         val am = getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
         val pm = packageManager
@@ -69,7 +82,11 @@ class MainActivity : AppCompatActivity() {
 
         for (app in processes) {
             val name = app.processName
-            if (name == packageName || name == launcherPkg || name.contains("keyboard") || name.contains("google.android.gms")) continue
+
+            if (name == packageName) continue             
+            if (name == launcherPkg) continue            
+            if (name.contains("keyboard")) continue      
+            if (name.contains("google.android.gms")) continue 
 
             if (app.importance > ActivityManager.RunningAppProcessInfo.IMPORTANCE_VISIBLE) {
                 am.killBackgroundProcesses(name)
