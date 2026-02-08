@@ -19,11 +19,11 @@ jobs:
           java-version: 17
 
       # Install modern Gradle manually (NOT Ubuntu repo)
-      - name: Install Gradle 8.7
+      - name: Install Gradle 8.11.1
         run: |
           wget https://services.gradle.org/distributions/gradle-8.7-bin.zip
-          unzip gradle-8.7-bin.zip
-          echo "$PWD/gradle-8.7/bin" >> $GITHUB_PATH
+          unzip gradle-8.11.1-bin.zip
+          echo "$PWD/gradle-8.11.1 /bin" >> $GITHUB_PATH
 
       # Now generate wrapper using correct gradle
       - name: Generate Wrapper
