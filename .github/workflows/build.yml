@@ -28,7 +28,7 @@ jobs:
       - name: Build Debug APK
         # We run 'gradle assembleDebug' directly instead of './gradlew' 
         # to ensure it uses the fresh version we just installed.
-        run: ./gradlew assembleDebug --info --stacktrace
+        run: gradlew assembleDebug --info --stacktrace
 
       # I ONLY ADDED THIS STEP BELOW TO SAVE THE FILE:
       - name: Upload APK
@@ -36,6 +36,3 @@ jobs:
         with:
           name: AppKiller-Debug-APK
           path: "**/*.apk"
-
-          - name: Grant execute permission
-  run: chmod +x gradlew
