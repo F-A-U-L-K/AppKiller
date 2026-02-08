@@ -21,6 +21,7 @@ jobs:
 
       - name: Make gradlew executable
         run: chmod +x gradlew
+        
 - name: Restore Gradle Wrapper
   run: |
     mkdir -p gradle/wrapper
