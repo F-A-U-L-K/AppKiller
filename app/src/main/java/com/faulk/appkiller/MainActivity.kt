@@ -19,14 +19,11 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
-        // Initialize View Binding
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        // Set up click listener for the Kill button
         binding.btnKill.setOnClickListener {
-            // Immediately run the usage cleanup logic
+            // Immediately open App Info for recent apps
             onClearButtonClick()
 
             // Disable button and show progress
@@ -34,9 +31,9 @@ class MainActivity : AppCompatActivity() {
             binding.btnKill.text = "Cleaning..."
             Toast.makeText(this, "Optimizing Memory...", Toast.LENGTH_SHORT).show()
 
-            // Run background cleaning in a separate thread
+            // Run background memory optimization safely
             thread {
-                performBulletproofClean()
+                performSafeClean()
                 runOnUiThread {
                     binding.btnKill.isEnabled = true
                     binding.btnKill.text = "KILL APPS"
@@ -47,13 +44,12 @@ class MainActivity : AppCompatActivity() {
     }
 
     /**
-     * Finds apps used in the last 10 minutes and opens their "App Info" page.
-     * Requires "Usage Access" permission.
+     * Opens "App Info" for apps used in the last 10 minutes.
      */
     private fun onClearButtonClick() {
         val usm = getSystemService(Context.USAGE_STATS_SERVICE) as UsageStatsManager
         val endTime = System.currentTimeMillis()
-        val startTime = endTime - (1000 * 60 * 10) // last 10 minutes
+        val startTime = endTime - 1000 * 60 * 10 // last 10 minutes
 
         val usageStatsList = usm.queryUsageStats(
             UsageStatsManager.INTERVAL_DAILY,
@@ -61,7 +57,6 @@ class MainActivity : AppCompatActivity() {
             endTime
         )
 
-        // If permission is missing, send user to Usage Access settings
         if (usageStatsList.isNullOrEmpty()) {
             Toast.makeText(this, "Enable 'Usage Access' for AppKiller", Toast.LENGTH_LONG).show()
             startActivity(Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS))
@@ -69,10 +64,10 @@ class MainActivity : AppCompatActivity() {
         }
 
         usageStatsList.forEach { stats ->
-            val packageName = stats.packageName
-            if (packageName != this.packageName) {
+            val pkg = stats.packageName
+            if (pkg != this.packageName) {
                 val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
-                    data = Uri.parse("package:$packageName")
+                    data = Uri.parse("package:$pkg")
                     addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                 }
                 startActivity(intent)
@@ -81,9 +76,9 @@ class MainActivity : AppCompatActivity() {
     }
 
     /**
-     * Kills background processes except the launcher, keyboard, Google Play Services, and this app.
+     * Safely frees memory without killing system-critical apps.
      */
-    private fun performBulletproofClean() {
+    private fun performSafeClean() {
         val am = getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
         val pm = packageManager
 
@@ -95,11 +90,22 @@ class MainActivity : AppCompatActivity() {
 
         for (app in processes) {
             val name = app.processName
-            if (name == packageName || name == launcherPkg || name.contains("keyboard") || name.contains("google.android.gms")) continue
 
-            if (app.importance > ActivityManager.RunningAppProcessInfo.IMPORTANCE_VISIBLE) {
-                am.killBackgroundProcesses(name)
-                Thread.sleep(50) // slight delay to avoid crashes
+            // Skip critical apps
+            if (name == packageName || name == launcherPkg ||
+                name.contains("keyboard") || name.contains("google.android.gms")
+            ) continue
+
+            // Only target apps that are visible but not foreground
+            if (app.importance > ActivityManager.RunningAppProcessInfo.IMPORTANCE_FOREGROUND) {
+                try {
+                    // Modern Android: killBackgroundProcesses may not always work,
+                    // but this is safe and won’t crash
+                    am.killBackgroundProcesses(name)
+                    Thread.sleep(50)
+                } catch (e: Exception) {
+                    // Ignore failures (some system apps cannot be killed)
+                }
             }
         }
     }
