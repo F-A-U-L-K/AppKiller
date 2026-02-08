@@ -4,109 +4,122 @@ import android.app.ActivityManager
 import android.app.usage.UsageStatsManager
 import android.content.Context
 import android.content.Intent
+import android.content.pm.ApplicationInfo
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Bundle
 import android.provider.Settings
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.recyclerview.widget.LinearLayoutManager
 import com.faulk.appkiller.databinding.ActivityMainBinding
 import kotlin.concurrent.thread
 
 class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
+    private val appsList = mutableListOf<AppItem>()
+    private lateinit var adapter: AppAdapter
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        // Setup RecyclerView
+        adapter = AppAdapter(appsList)
+        binding.rvApps.layoutManager = LinearLayoutManager(this)
+        binding.rvApps.adapter = adapter
+
+        // Kill / Optimize
         binding.btnKill.setOnClickListener {
-            // Immediately open App Info for recent apps
-            onClearButtonClick()
+            if (!checkUsagePermission()) return@setOnClickListener
 
-            // Disable button and show progress
             binding.btnKill.isEnabled = false
-            binding.btnKill.text = "Cleaning..."
-            Toast.makeText(this, "Optimizing Memory...", Toast.LENGTH_SHORT).show()
+            binding.tvStatus.text = "Starting optimization...\n"
 
-            // Run background memory optimization safely
             thread {
-                performSafeClean()
+                loadRunningApps()
+                optimizeMemory()
                 runOnUiThread {
                     binding.btnKill.isEnabled = true
-                    binding.btnKill.text = "KILL APPS"
                     Toast.makeText(this, "Optimization Complete", Toast.LENGTH_LONG).show()
                 }
             }
         }
-    }
 
-    /**
-     * Opens "App Info" for apps used in the last 10 minutes.
-     */
-    private fun onClearButtonClick() {
-        val usm = getSystemService(Context.USAGE_STATS_SERVICE) as UsageStatsManager
-        val endTime = System.currentTimeMillis()
-        val startTime = endTime - 1000 * 60 * 10 // last 10 minutes
-
-        val usageStatsList = usm.queryUsageStats(
-            UsageStatsManager.INTERVAL_DAILY,
-            startTime,
-            endTime
-        )
-
-        if (usageStatsList.isNullOrEmpty()) {
-            Toast.makeText(this, "Enable 'Usage Access' for AppKiller", Toast.LENGTH_LONG).show()
-            startActivity(Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS))
-            return
-        }
-
-        usageStatsList.forEach { stats ->
-            val pkg = stats.packageName
-            if (pkg != this.packageName) {
-                val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
-                    data = Uri.parse("package:$pkg")
-                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        // Clear cache
+        binding.btnClearCache.setOnClickListener {
+            binding.btnClearCache.isEnabled = false
+            binding.tvStatus.append("Clearing cache...\n")
+            thread {
+                clearAppCache()
+                runOnUiThread {
+                    binding.btnClearCache.isEnabled = true
+                    Toast.makeText(this, "Cache Cleared", Toast.LENGTH_LONG).show()
                 }
-                startActivity(intent)
             }
         }
     }
 
-    /**
-     * Safely frees memory without killing system-critical apps.
-     */
-    private fun performSafeClean() {
+    private fun checkUsagePermission(): Boolean {
+        val usm = getSystemService(Context.USAGE_STATS_SERVICE) as UsageStatsManager
+        val end = System.currentTimeMillis()
+        val start = end - 1000 * 60
+        val stats = usm.queryUsageStats(UsageStatsManager.INTERVAL_DAILY, start, end)
+        if (stats.isNullOrEmpty()) {
+            Toast.makeText(this, "Please grant Usage Access", Toast.LENGTH_LONG).show()
+            startActivity(Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS))
+            return false
+        }
+        return true
+    }
+
+    private fun loadRunningApps() {
         val am = getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
         val pm = packageManager
-
-        val homeIntent = Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_HOME)
-        val launcherPkg = pm.resolveActivity(homeIntent, PackageManager.MATCH_DEFAULT_ONLY)
-            ?.activityInfo?.packageName
-
         val processes = am.runningAppProcesses ?: return
-
-        for (app in processes) {
-            val name = app.processName
-
-            // Skip critical apps
-            if (name == packageName || name == launcherPkg ||
-                name.contains("keyboard") || name.contains("google.android.gms")
-            ) continue
-
-            // Only target apps that are visible but not foreground
-            if (app.importance > ActivityManager.RunningAppProcessInfo.IMPORTANCE_FOREGROUND) {
-                try {
-                    // Modern Android: killBackgroundProcesses may not always work,
-                    // but this is safe and won’t crash
-                    am.killBackgroundProcesses(name)
-                    Thread.sleep(50)
-                } catch (e: Exception) {
-                    // Ignore failures (some system apps cannot be killed)
-                }
-            }
+        appsList.clear()
+        for (proc in processes) {
+            try {
+                val info = pm.getApplicationInfo(proc.processName, 0)
+                val name = pm.getApplicationLabel(info).toString()
+                appsList.add(AppItem(proc.processName, name, pm.getApplicationIcon(info)))
+            } catch (_: PackageManager.NameNotFoundException) { }
         }
+        runOnUiThread { adapter.notifyDataSetChanged() }
+    }
+
+    private fun optimizeMemory() {
+        val am = getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
+        val pm = packageManager
+        val homePkg = pm.resolveActivity(Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_HOME), PackageManager.MATCH_DEFAULT_ONLY)?.activityInfo?.packageName
+
+        for (app in appsList) {
+            if (app.packageName == packageName || app.packageName == homePkg) continue
+            try {
+                am.killBackgroundProcesses(app.packageName)
+                runOnUiThread {
+                    binding.tvStatus.append("Closed: ${app.appName}\n")
+                }
+                Thread.sleep(50)
+            } catch (_: Exception) { }
+        }
+    }
+
+    private fun clearAppCache() {
+        val pm = packageManager
+        val packages = pm.getInstalledApplications(PackageManager.GET_META_DATA)
+        for (app in packages) {
+            try {
+                if (app.flags and ApplicationInfo.FLAG_SYSTEM != 0) continue
+                app.cacheDir?.deleteRecursively()
+            } catch (_: Exception) { }
+        }
+        deleteCacheDir(this)
+    }
+
+    private fun deleteCacheDir(context: Context) {
+        try { context.cacheDir?.deleteRecursively() } catch (_: Exception) { }
     }
 }
