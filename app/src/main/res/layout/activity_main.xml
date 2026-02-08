@@ -16,10 +16,11 @@
         android:layout_marginBottom="24dp"/>
 
     <Button
-        android:id="@+id/btnKill"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="KILL APPS"
-        android:padding="16dp"/>
+    android:id="@+id/button"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:text="Clear Memory"
+    android:onClick="onClearButtonClick" /> 
+
 
 </LinearLayout>
