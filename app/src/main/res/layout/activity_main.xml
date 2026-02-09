@@ -1,92 +1,139 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/rootLayout"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@android:color/black">
+    android:orientation="vertical"
+    android:background="#121212"
+    tools:context=".MainActivity">
 
-    <!-- Radar View -->
-    <com.faulk.appkiller.RadarView
-        android:id="@+id/radarView"
-        android:layout_width="match_parent"
-        android:layout_height="300dp"
-        android:layout_alignParentTop="true"
-        android:visibility="gone" />
-
-    <!-- ProgressBar for scanning -->
-    <ProgressBar
-        android:id="@+id/progressScanner"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_centerHorizontal="true"
-        android:layout_below="@id/radarView"
-        android:visibility="gone"
-        style="?android:attr/progressBarStyleHorizontal"
-        android:indeterminate="true"
-        android:progressTint="@color/radar_green" />
-
-    <!-- RecyclerView of apps -->
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/rvApps"
+    <!-- Header -->
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@id/progressScanner"
-        android:layout_above="@id/tvStatus"
-        android:padding="8dp" />
-
-    <!-- Status Log -->
-    <ScrollView
-        android:id="@+id/scrollLog"
-        android:layout_width="match_parent"
-        android:layout_height="150dp"
-        android:layout_alignParentBottom="true"
-        android:padding="8dp"
-        android:background="#22000000">
+        android:orientation="vertical"
+        android:background="#1E1E2E"
+        android:elevation="4dp"
+        android:padding="16dp">
 
         <TextView
-            android:id="@+id/tvStatus"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="🧹 App Killer"
+            android:textColor="#FFFFFF"
+            android:textSize="24sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/memory_info_text"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:textColor="@color/white"
-            android:textSize="14sp"
-            android:fontFamily="monospace" />
-    </ScrollView>
+            android:layout_marginTop="4dp"
+            android:text="RAM: Calculating..."
+            android:textColor="#90CAF9"
+            android:textSize="12sp" />
 
-    <!-- Buttons -->
+        <!-- Status & Count Row -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
+
+            <TextView
+                android:id="@+id/status_text"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Ready"
+                android:textColor="#B0BEC5"
+                android:textSize="14sp" />
+
+            <TextView
+                android:id="@+id/count_text"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="0 apps"
+                android:textColor="#FF9800"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                android:background="@drawable/bg_card"
+                android:paddingStart="12dp"
+                android:paddingEnd="12dp"
+                android:paddingTop="4dp"
+                android:paddingBottom="4dp" />
+        </LinearLayout>
+
+        <ProgressBar
+            android:id="@+id/progress_bar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            style="@style/Widget.AppCompat.ProgressBar.Horizontal"
+            android:indeterminate="true"
+            android:visibility="gone" />
+
+    </LinearLayout>
+
+    <!-- Button Row -->
     <LinearLayout
-        android:id="@+id/buttonPanel"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_above="@id/scrollLog"
         android:orientation="horizontal"
-        android:gravity="center"
-        android:padding="8dp">
+        android:padding="12dp"
+        android:gravity="center">
 
         <Button
-            android:id="@+id/btnOneTapOptimize"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="One-Tap Optimize"
-            android:layout_margin="4dp"
-            android:backgroundTint="@color/radar_green"
-            android:textColor="@color/black" />
+            android:id="@+id/btn_refresh"
+            android:layout_width="0dp"
+            android:layout_height="50dp"
+            android:layout_weight="1"
+            android:layout_marginEnd="6dp"
+            android:text="🔄 Refresh"
+            android:textColor="#FFFFFF"
+            android:textSize="14sp"
+            android:textAllCaps="false"
+            android:background="@drawable/bg_refresh_button" />
 
         <Button
-            android:id="@+id/btnKill"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Kill Selected"
-            android:layout_margin="4dp"
-            android:backgroundTint="@color/radar_green"
-            android:textColor="@color/black" />
-
-        <Button
-            android:id="@+id/btnClearCache"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Clear Cache"
-            android:layout_margin="4dp"
-            android:backgroundTint="@color/radar_green"
-            android:textColor="@color/black" />
+            android:id="@+id/btn_kill_all"
+            android:layout_width="0dp"
+            android:layout_height="50dp"
+            android:layout_weight="1"
+            android:layout_marginStart="6dp"
+            android:text="💀 Kill All"
+            android:textColor="#FFFFFF"
+            android:textSize="14sp"
+            android:textAllCaps="false"
+            android:textStyle="bold"
+            android:background="@drawable/bg_kill_button"
+            android:enabled="false" />
     </LinearLayout>
-</RelativeLayout>
+
+    <!-- App List -->
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1">
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/recycler_view"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:padding="8dp"
+            android:clipToPadding="false" />
+
+        <TextView
+            android:id="@+id/empty_text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:text="No running apps found.\nTap Refresh to scan again."
+            android:textColor="#757575"
+            android:textSize="16sp"
+            android:textAlignment="center"
+            android:visibility="gone" />
+    </FrameLayout>
+
+</LinearLayout>
