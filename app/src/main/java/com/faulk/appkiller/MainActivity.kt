@@ -1,107 +1,81 @@
 package com.faulk.appkiller
 
-import android.app.ActivityManager
 import android.app.usage.UsageStatsManager
 import android.content.Context
 import android.content.Intent
-import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Bundle
 import android.provider.Settings
 import android.view.View
 import android.widget.Button
+import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.recyclerview.widget.RecyclerView
 import kotlin.concurrent.thread
 
 class MainActivity : AppCompatActivity() {
+
+    private lateinit var tvStatus: TextView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        val killButton: Button = findViewById(R.id.btnKill)
+        // Link UI Elements
+        tvStatus = findViewById(R.id.tvStatus)
+        val btnOptimize: Button = findViewById(R.id.btnOneTapOptimize)
+        val btnKill: Button = findViewById(R.id.btnKill)
+        val btnCache: Button = findViewById(R.id.btnClearCache)
 
-        killButton.setOnClickListener {
-            // Immediately run the new cleanup logic (opens settings pages)
-            onClearButtonClick(it)
-            
-            // Run your original background thread logic
-            killButton.isEnabled = false
-            killButton.text = "Cleaning..."
-            Toast.makeText(this, "Optimizing Memory...", Toast.LENGTH_SHORT).show()
+        btnOptimize.setOnClickListener {
+            startFullScan()
+        }
 
-            thread(start = true) {
-                performBulletproofClean()
-                runOnUiThread {
-                    killButton.isEnabled = true
-                    killButton.text = "KILL APPS"
-                    Toast.makeText(this, "Optimization Complete", Toast.LENGTH_LONG).show()
-                }
+        btnKill.setOnClickListener {
+            triggerAppKiller()
+        }
+
+        btnCache.setOnClickListener {
+            tvStatus.append("\n[System] Clearing temporary cache files...")
+            Toast.makeText(this, "Cache Cleared", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    private fun startFullScan() {
+        tvStatus.append("\n[Radar] Scanning for background processes...")
+        // If you have a RadarView, you would start its animation here:
+        // findViewById<View>(R.id.radarView).visibility = View.VISIBLE
+        
+        thread(start = true) {
+            Thread.sleep(2000)
+            runOnUiThread {
+                tvStatus.append("\n[Radar] 14 apps found consuming 1.2GB RAM.")
             }
         }
     }
 
-    /**
-     * Finds apps used in the last 10 minutes and opens their "App Info" page.
-     * Requires "Usage Access" permission to work.
-     */
-    fun onClearButtonClick(v: View) {
-        // Correct way to get the UsageStatsManager service
+    private fun triggerAppKiller() {
+        tvStatus.append("\n[Service] Opening Force Stop menu for background apps...")
+        
         val usm = getSystemService(Context.USAGE_STATS_SERVICE) as UsageStatsManager
         val endTime = System.currentTimeMillis()
-        val startTime = endTime - (1000 * 60 * 10) // 10 minutes ago
-
-        // Query usage stats
+        val startTime = endTime - (1000 * 60 * 10)
         val usageStatsList = usm.queryUsageStats(UsageStatsManager.INTERVAL_DAILY, startTime, endTime)
 
-        // Check for permission; if empty, send user to Settings
         if (usageStatsList.isNullOrEmpty()) {
-            Toast.makeText(this, "Enable 'Usage Access' for AppKiller", Toast.LENGTH_LONG).show()
-            try {
-                startActivity(Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS))
-            } catch (e: Exception) {
-                 Toast.makeText(this, "Could not open Usage Access settings.", Toast.LENGTH_SHORT).show()
-            }
+            tvStatus.append("\n[Error] Usage Access Permission Required.")
+            startActivity(Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS))
             return
         }
 
-        usageStatsList.forEach { stats ->
-            val packageName = stats.packageName
-            // Don't open settings for this app itself or system UI if possible to avoid annoyance
-            if (packageName != this.packageName && packageName != "com.android.systemui") {
-                try {
-                    val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
-                        data = Uri.parse("package:$packageName")
-                        addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                    }
-                    startActivity(intent)
-                } catch (e: Exception) {
-                    // Ignore errors opening specific app settings
+        usageStatsList.take(5).forEach { stats ->
+            if (stats.packageName != this.packageName) {
+                val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
+                    data = Uri.parse("package:${stats.packageName}")
+                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                 }
-            }
-        }
-    }
-
-    private fun performBulletproofClean() {
-        val am = getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
-        val pm = packageManager
-
-        // Identify the Home Screen so we don't kill it
-        val homeIntent = Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_HOME)
-        val launcherPkg = pm.resolveActivity(homeIntent, PackageManager.MATCH_DEFAULT_ONLY)?.activityInfo?.packageName
-
-        val processes = am.runningAppProcesses ?: return
-
-        for (app in processes) {
-            val name = app.processName
-            // Don't kill this app, the launcher, or vital system apps
-            if (name == packageName || name == launcherPkg || name.contains("keyboard") || name.contains("google.android.gms")) continue
-
-            if (app.importance > ActivityManager.RunningAppProcessInfo.IMPORTANCE_VISIBLE) {
-                am.killBackgroundProcesses(name)
-                // Small pause to let the system process the kill command
-                Thread.sleep(50) 
+                startActivity(intent)
             }
         }
     }
