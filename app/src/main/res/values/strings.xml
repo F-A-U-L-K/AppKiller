@@ -1,4 +1,4 @@
 <resources>
     <string name="app_name">App Killer</string>
-<string name="accessibility_description">Optimizes device performance by managing background apps.</string>
+    <string name="accessibility_description">App Killer needs this permission to automate the "Force Stop" process. The service will mimic finger taps inside the App Info screen to close background apps, saving battery and memory. Your data remains private and is never collected.</string>
 </resources>
