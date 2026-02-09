@@ -114,10 +114,3 @@ private fun clearCache() {
 private fun deleteCacheDir(context: Context) {
     try { context.cacheDir?.deleteRecursively() } catch (_: Exception) { }
 }
-deleteCacheDir(this) // ✅ deletes your app's cache directory
-    }
-
-    private fun deleteCacheDir(context: Context) {
-        try { context.cacheDir?.deleteRecursively() } catch (_: Exception) { }
-    }
-}
