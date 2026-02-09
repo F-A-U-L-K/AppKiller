@@ -107,14 +107,12 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun clearAppCache() {
-        val pm = packageManager
-        val packages = pm.getInstalledApplications(PackageManager.GET_META_DATA)
-for (app in appsList) {
-    try {
-        if (app.flags and ApplicationInfo.FLAG_SYSTEM != 0) continue
-        // Remove the line above — don't touch app.cacheDir
-    } catch (_: Exception) { }
+private fun clearCache() {
+    deleteCacheDir(this)
+}
+
+private fun deleteCacheDir(context: Context) {
+    try { context.cacheDir?.deleteRecursively() } catch (_: Exception) { }
 }
 deleteCacheDir(this) // ✅ deletes your app's cache directory
     }
