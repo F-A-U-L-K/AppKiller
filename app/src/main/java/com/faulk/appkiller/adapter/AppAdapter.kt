@@ -1,4 +1,4 @@
-package com.example.appkiller
+package com.faulk.appkiller
 
 import android.view.LayoutInflater
 import android.view.View
