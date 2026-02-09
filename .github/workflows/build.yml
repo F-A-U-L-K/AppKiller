@@ -10,26 +10,37 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # 1. Checkout the repo
+      # 1️⃣ Get your code
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # 2. Set up Java 17
+      # 2️⃣ Install Java 17 (required for Android Gradle)
       - name: Set up Java
         uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: 17
 
-      # 3. Make gradlew executable
+      # 3️⃣ Install Gradle (standalone, not wrapper)
+      - name: Install Gradle
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gradle
+
+      # 4️⃣ Regenerate Gradle wrapper if missing/broken
+      - name: Generate Gradle Wrapper
+        run: |
+          gradle wrapper --gradle-version 8.11.1
+
+      # 5️⃣ Make executable (Linux requirement)
       - name: Make gradlew executable
         run: chmod +x gradlew
 
-      # 4. Build the debug APK
+      # 6️⃣ Build APK
       - name: Build Debug APK
-        run: ./gradlew assembleDebug --no-daemon
+        run: ./gradlew assembleDebug --no-daemon --stacktrace
 
-      # 5. Upload the APK as an artifact
+      # 7️⃣ Upload APK so you can download it
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
