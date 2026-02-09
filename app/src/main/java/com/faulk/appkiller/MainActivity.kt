@@ -1,4 +1,4 @@
-package com.example.appkiller
+package com.faulk.appkiller
 
 import android.app.ActivityManager
 import android.app.AppOpsManager
