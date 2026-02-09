@@ -53,7 +53,7 @@ class MainActivity : AppCompatActivity() {
             binding.btnClearCache.isEnabled = false
             binding.tvStatus.append("Clearing cache...\n")
             thread {
-                clearAppCache()
+                clearCache()
                 runOnUiThread {
                     binding.btnClearCache.isEnabled = true
                     Toast.makeText(this, "Cache Cleared", Toast.LENGTH_LONG).show()
@@ -113,4 +113,5 @@ private fun clearCache() {
 
 private fun deleteCacheDir(context: Context) {
     try { context.cacheDir?.deleteRecursively() } catch (_: Exception) { }
+}
 }
