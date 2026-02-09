@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">App Killer</string>
+<string name="accessibility_description">Optimizes device performance by managing background apps.</string>
 </resources>
