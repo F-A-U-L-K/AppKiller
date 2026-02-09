@@ -1,4 +1,4 @@
-package com.faulk.appkiller
+package com.example.appkiller
 
 import android.graphics.drawable.Drawable
 
