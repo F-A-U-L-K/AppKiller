@@ -1,4 +1,3 @@
 <resources>
-    <string name="app_name">AppKiller</string>
-    <string name="accessibility_description">This service is used to automate the "Force Stop" sequence for background apps.</string>
+    <string name="app_name">App Killer</string>
 </resources>
