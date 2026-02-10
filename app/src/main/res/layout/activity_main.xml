@@ -83,7 +83,7 @@
             android:layout_height="60dp"
             android:layout_marginTop="8dp"
             android:text="Hibernate Selected Apps"
-            app:icon="@drawable/ic_baseline_power_settings_new_24" />
+            android:src="@android:drawable/ic_lock_power_off"/>
     </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
