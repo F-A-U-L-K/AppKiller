@@ -55,4 +55,5 @@ dependencies {
 
     // Special UI Features
     implementation 'com.airbnb.android:lottie:6.3.0'
+    implementation 'androidx.fragment:fragment-ktx:1.8.5'
 }
