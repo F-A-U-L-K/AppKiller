@@ -17,9 +17,9 @@ class AppAdapter : ListAdapter<AppInfo, AppAdapter.AppViewHolder>(AppDiffCallbac
     class AppViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val iconView: ImageView = itemView.findViewById(R.id.app_icon)
         val nameView: TextView = itemView.findViewById(R.id.app_name)
-        val packageView: TextView = itemView.findViewById(R.id.app_package)
-        val memoryView: TextView = itemView.findViewById(R.id.app_memory)
-        val lastUsedView: TextView = itemView.findViewById(R.id.app_last_used)
+        val packageView: TextView = itemView.findViewById(R.id.battery_usage)
+        val memoryView: TextView = itemView.findViewById(R.id.battery_usage)
+        val lastUsedView: TextView = itemView.findViewById(R.id.last_used)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): AppViewHolder {
