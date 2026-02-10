@@ -21,7 +21,6 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 Execution failed for task ':app:compileDebugKotlin'.
-import android.R
 import kotlinx.coroutines.*
 
 class MainActivity : AppCompatActivity() {
